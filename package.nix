@@ -4,6 +4,7 @@
   appdirs,
   numpy,
   pexpect,
+  setuptools,
 }:
 
 let
@@ -27,6 +28,9 @@ let
       type = "app";
       program = "${self}/bin/${script}";
     });
+
+    pyproject = true;
+    build-system = [ setuptools ];
 
     meta = {
       description = "Bisect nix builds";
