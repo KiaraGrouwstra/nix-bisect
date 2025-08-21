@@ -159,7 +159,7 @@ def clear_refs_with_prefix(prefix):
 
 
 def read_patchset():
-    """Reats the current (i.e. longest) patchset from the refs"""
+    """Reads the current (i.e. longest) patchset from the refs"""
     patchset_refs = git.get_refs_with_prefix("refs/bisect/patchset")
     if len(patchset_refs) == 0:
         return []
@@ -198,7 +198,7 @@ class BisectRunner:
         This takes skip-ranges into account and prioritizes finding the first
         commit that unbreaks a skip range.
 
-        May add commits for cherry pick. Returns `False` when the bisect is
+        May add commits for cherry pick. Returns `None` when the bisect is
         finished.
         """
         patchset = read_patchset()
