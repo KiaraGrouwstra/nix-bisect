@@ -35,7 +35,8 @@ def build_status(
         drv = drvish_to_drv(
             drvish, nix_file, nix_options=nix_options, nix_argstr=nix_argstr, flake=flake
         )
-    except nix.InstantiationFailure:
+    except nix.InstantiationFailure as e:
+        print(e)
         return "instantiation_failure"
     print(f"Querying status of {drv!r}.")
 

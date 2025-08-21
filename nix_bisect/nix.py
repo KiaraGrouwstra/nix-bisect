@@ -103,6 +103,7 @@ def instantiate(attrname, nix_file=".", nix_options=(), nix_argstr=(), expressio
         Nix file to instantiate an attribute from.
     """
     option_args = _nix_options_to_flags(nix_options)
+    print(f"nix_argstr: {nix_argstr}")
 
     if flake:
         arg_dict = dict(nix_argstr)
@@ -130,8 +131,11 @@ def instantiate(attrname, nix_file=".", nix_options=(), nix_argstr=(), expressio
                 option_args.append(name)
                 option_args.append(val)
             command = ["nix-instantiate", nix_file, "-A", arg] + option_args
+    print(f"command: {command}")
     result = run(command, stdout=PIPE, stderr=PIPE, encoding="utf-8",)
 
+    print(f"command code: {result.returncode}")
+    print(f"command output: {result.stdout.strip()}")
     if result.returncode == 0:
         return result.stdout.strip()
 
