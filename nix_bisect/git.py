@@ -199,9 +199,13 @@ def commit(message):
     result.check_returncode()
 
 
-def checkout(commit):
+def checkout(commit, force=True):
     """Runs `git checkout`"""
-    subprocess.check_call(["git", "checkout", commit])
+    args = []
+    if force:
+        args += ["--force"]
+    command = ["git", "checkout"] + args + [commit]
+    subprocess.check_call(command)
 
 
 def get_refs_with_prefix(prefix):
