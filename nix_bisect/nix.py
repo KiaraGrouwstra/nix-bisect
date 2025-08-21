@@ -82,7 +82,7 @@ class InstantiationFailure(Exception):
     """Failure during instantiation."""
 
 
-def instantiate(attrname, nix_file=".", nix_options=(), nix_argstr=(), expression=True):
+def instantiate(attrname, nix_file=".", nix_options=(), nix_argstr=(), expression=True, flake=False):
     """Instantiate an attribute.
 
     Parameters
@@ -104,25 +104,32 @@ def instantiate(attrname, nix_file=".", nix_options=(), nix_argstr=(), expressio
     """
     option_args = _nix_options_to_flags(nix_options)
 
-    if expression:
-        if nix_file is not None:
-            # We need to simulate --argstr support since we're calling nixpkgs
-            # manually to allow for arbitrary nix expressions.
-            call_args = ""
-            for (name, val) in nix_argstr:
-                call_args += f'{name} = "{val}";'
-            arg = (
-                f"with (import {Path(nix_file).absolute()} {{{call_args}}}); {attrname}"
-            )
-        else:
-            arg = attrname
-        command = ["nix-instantiate", "-E", arg] + option_args
+    if flake:
+        arg_dict = dict(nix_argstr)
+        flake_args = []
+        if 'impure' in arg_dict and arg_dict['impure'] == 'true':
+            flake_args += ['--impure']
+        command = ["nix", "eval", "--raw"] + flake_args + [f"{nix_file}#{attrname}.drvPath"]
     else:
-        for name, val in nix_argstr:
-            option_args.append("--argstr")
-            option_args.append(name)
-            option_args.append(val)
-        command = ["nix-instantiate", nix_file, "-A", arg] + option_args
+        if expression:
+            if nix_file is not None:
+                # We need to simulate --argstr support since we're calling nixpkgs
+                # manually to allow for arbitrary nix expressions.
+                call_args = ""
+                for (name, val) in nix_argstr:
+                    call_args += f'{name} = "{val}";'
+                arg = (
+                    f"with (import {Path(nix_file).absolute()} {{{call_args}}}); {attrname}"
+                )
+            else:
+                arg = attrname
+            command = ["nix-instantiate", "-E", arg] + option_args
+        else:
+            for name, val in nix_argstr:
+                option_args.append("--argstr")
+                option_args.append(name)
+                option_args.append(val)
+            command = ["nix-instantiate", nix_file, "-A", arg] + option_args
     result = run(command, stdout=PIPE, stderr=PIPE, encoding="utf-8",)
 
     if result.returncode == 0:

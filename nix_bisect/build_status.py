@@ -9,14 +9,14 @@ from nix_bisect import nix, exceptions, git_bisect
 from nix_bisect.derivation import Derivation
 
 
-def drvish_to_drv(drvish, nix_file, nix_options, nix_argstr):
+def drvish_to_drv(drvish, nix_file, nix_options, nix_argstr, flake=False):
     """No-op on drv files, otherwise evaluate in the context of nix_file"""
     path = Path(drvish)
     if path.exists() and path.name.endswith(".drv"):
         return str(path)
     else:
         return nix.instantiate(
-            drvish, nix_file, nix_options=nix_options, nix_argstr=nix_argstr
+            drvish, nix_file, nix_options=nix_options, nix_argstr=nix_argstr, flake=flake
         )
 
 
@@ -28,11 +28,12 @@ def build_status(
     failure_line=None,
     max_rebuilds=None,
     rebuild_blacklist=(),
+    flake=False,
 ):
     """Determine the status of `drvish` and return the result as indicated"""
     try:
         drv = drvish_to_drv(
-            drvish, nix_file, nix_options=nix_options, nix_argstr=nix_argstr
+            drvish, nix_file, nix_options=nix_options, nix_argstr=nix_argstr, flake=flake
         )
     except nix.InstantiationFailure:
         return "instantiation_failure"
@@ -175,6 +176,11 @@ def _main():
         action="append",
         help="If any derivation matching this regex needs to be rebuilt, the build is skipped",
     )
+    parser.add_argument(
+        "--flake",
+        action="store_true",
+        help="Whether to evaluate the attribute of flakes rather than of plain Nix files",
+    )
 
     try:
         args = parser.parse_args()
@@ -191,6 +197,7 @@ def _main():
         rebuild_blacklist=args.rebuild_blacklist
         if args.rebuild_blacklist is not None
         else (),
+        flake=args.flake,
     )
     action_on_status = {
         "success": args.on_success,
