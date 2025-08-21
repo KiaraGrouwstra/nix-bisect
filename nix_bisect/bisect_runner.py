@@ -216,9 +216,10 @@ class BisectRunner:
                     print(f"First bad found! Here it is: {commit}")
                     return None
                 skip_ranges += skip_ranges_of_commit(parent, patchset)
-            print(f"cherry-pick {commit} to unbreak {skip_ranges}")
-            patchset.insert(0, commit)
-            git.update_ref(f"refs/bisect/{patchset_identifier(patchset)}/head", commit)
+            if len(skip_ranges) > 0:
+                print(f"cherry-pick {commit} to unbreak {skip_ranges}")
+                patchset.insert(0, commit)
+                git.update_ref(f"refs/bisect/{patchset_identifier(patchset)}/head", commit)
             return self.get_next()
         return commit
 
