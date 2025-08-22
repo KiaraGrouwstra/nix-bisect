@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 import numpy as np
 from nix_bisect import git, git_bisect
+from sys import setrecursionlimit
 
 
 def has_good_and_bad():
@@ -191,6 +192,9 @@ def first_not_skipped(commit_list):
 
 class BisectRunner:
     """Runs a bisection"""
+
+    def __init__():
+        sys.setrecursionlimit(5000)
 
     def get_next(self):
         """Computes the next commit to test.
