@@ -193,8 +193,8 @@ def first_not_skipped(commit_list):
 class BisectRunner:
     """Runs a bisection"""
 
-    def __init__():
-        sys.setrecursionlimit(5000)
+    def __init__(self):
+        setrecursionlimit(5000)
 
     def get_next(self):
         """Computes the next commit to test.
