@@ -9,15 +9,34 @@ from nix_bisect import nix, exceptions, git_bisect
 from nix_bisect.derivation import Derivation
 
 
-def drvish_to_drv(drvish, nix_file, nix_options, nix_argstr, flake=False):
+def drvish_to_drv(
+    drvish,
+    nix_file,
+    nix_options,
+    nix_argstr,
+    input_overrides,
+    flake=False,
+):
     """No-op on drv files, otherwise evaluate in the context of nix_file"""
     path = Path(drvish)
     if path.exists() and path.name.endswith(".drv"):
         return str(path)
     else:
-        return nix.instantiate(
-            drvish, nix_file, nix_options=nix_options, nix_argstr=nix_argstr, flake=flake
-        )
+        if flake:
+            return nix.flake_instantiate(
+                drvish,
+                nix_file,
+                nix_options=nix_options,
+                nix_argstr=nix_argstr,
+                input_overrides=input_overrides,
+            )
+        else:
+            return nix.instantiate(
+                drvish,
+                nix_file,
+                nix_options=nix_options,
+                nix_argstr=nix_argstr
+            )
 
 
 def build_status(
@@ -28,12 +47,18 @@ def build_status(
     failure_line=None,
     max_rebuilds=None,
     rebuild_blacklist=(),
+    input_overrides=(),
     flake=False,
 ):
     """Determine the status of `drvish` and return the result as indicated"""
     try:
         drv = drvish_to_drv(
-            drvish, nix_file, nix_options=nix_options, nix_argstr=nix_argstr, flake=flake
+            drvish,
+            nix_file,
+            nix_options=nix_options,
+            nix_argstr=nix_argstr,
+            input_overrides=input_overrides,
+            flake=flake,
         )
     except nix.InstantiationFailure:
         return "instantiation_failure"
@@ -128,6 +153,14 @@ def _main():
         help="Passed on to `nix instantiate`",
     )
     parser.add_argument(
+        "--override-input",
+        nargs=2,
+        metavar=("name", "value"),
+        action="append",
+        default=[],
+        help="Input overrides passed on to flake builds",
+    )
+    parser.add_argument(
         "--max-rebuilds", type=int, help="Number of builds to allow.", default=None,
     )
     parser.add_argument(
@@ -197,6 +230,7 @@ def _main():
         rebuild_blacklist=args.rebuild_blacklist
         if args.rebuild_blacklist is not None
         else (),
+        input_overrides=args.override_input,
         flake=args.flake,
     )
     action_on_status = {
