@@ -208,6 +208,7 @@ class BisectRunner:
         patchset = read_patchset()
         considered_good = get_good_commits() + get_skip_range_commits(patchset)
         candidates = git.get_bisect_all(considered_good, "refs/bisect/bad")
+        print(f"candidates: {len(candidates)}")
         # It would be better to use a more sophisticated algorithm like
         # https://github.com/git/git/commit/ebc9529f0358bdb10192fa27bc75f5d4e452ce90
         # This works for now though.

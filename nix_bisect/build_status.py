@@ -60,7 +60,8 @@ def build_status(
             input_overrides=input_overrides,
             flake=flake,
         )
-    except nix.InstantiationFailure:
+    except nix.InstantiationFailure as e:
+        print(e)
         return "instantiation_failure"
     print(f"Querying status of {drv!r}.")
 

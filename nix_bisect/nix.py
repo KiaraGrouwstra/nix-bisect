@@ -103,6 +103,7 @@ def flake_instantiate(attrname, flake_dir=".", nix_options=(), nix_argstr=(), in
     flake_dir: string,
         Flake directory to instantiate an attribute from.
     """
+    print(f"nix_argstr: {nix_argstr}")
     option_args = _nix_options_to_flags(nix_options)
     input_args = _input_overrides_to_flags(input_overrides)
     arg_dict = dict(nix_argstr)
@@ -110,8 +111,11 @@ def flake_instantiate(attrname, flake_dir=".", nix_options=(), nix_argstr=(), in
     if 'impure' in arg_dict and arg_dict['impure'] == 'true':
         flake_args += ['--impure']
     command = ["nix", "eval"] + option_args + input_args + ["--raw"] + flake_args + [f"{flake_dir}#{attrname}.drvPath"]
+    print(f"command: {command}")
     result = run(command, stdout=PIPE, stderr=PIPE, encoding="utf-8",)
 
+    print(f"command code: {result.returncode}")
+    print(f"command output: {result.stdout.strip()}")
     if result.returncode == 0:
         return result.stdout.strip()
 
@@ -139,6 +143,7 @@ def instantiate(attrname, nix_file=".", nix_options=(), nix_argstr=(), expressio
         Nix file to instantiate an attribute from.
     """
     option_args = _nix_options_to_flags(nix_options)
+    print(f"nix_argstr: {nix_argstr}")
     if expression:
         if nix_file is not None:
             # We need to simulate --argstr support since we're calling nixpkgs
@@ -158,8 +163,11 @@ def instantiate(attrname, nix_file=".", nix_options=(), nix_argstr=(), expressio
             option_args.append(name)
             option_args.append(val)
         command = ["nix-instantiate", nix_file, "-A", arg] + option_args
+    print(f"command: {command}")
     result = run(command, stdout=PIPE, stderr=PIPE, encoding="utf-8",)
 
+    print(f"command code: {result.returncode}")
+    print(f"command output: {result.stdout.strip()}")
     if result.returncode == 0:
         return result.stdout.strip()
 
