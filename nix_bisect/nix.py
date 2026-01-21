@@ -1,6 +1,6 @@
 """Wrapper for nix functionality"""
 
-from subprocess import run, PIPE
+from subprocess import run, CalledProcessError, PIPE
 import subprocess
 from pathlib import Path
 from typing import Set
@@ -233,10 +233,18 @@ def _build_uncached(drvs, nix_options=()):
     if len(drvs_failed) > 0:
         raise BuildFailure(drvs_failed)
 
-    location_process = run(
-        ["nix-store", "--realize"] + drvs, stdout=PIPE, stderr=PIPE, encoding="utf-8",
-    )
-    location_process.check_returncode()
+    for drv in (set(drvs) - drvs_failed):
+        location_process = run(
+            ["nix-store", "--realize", drv], stdout=PIPE, stderr=PIPE, encoding="utf-8",
+        )
+        try:
+            location_process.check_returncode()
+        except CalledProcessError:
+            drvs_failed.add(drv)
+
+    if len(drvs_failed) > 0:
+        raise BuildFailure(drvs_failed)
+
     storepaths = location_process.stdout.split("\n")
     return storepaths
 
