@@ -109,7 +109,9 @@ def flake_instantiate(attrname, flake_dir=".", nix_options=(), nix_argstr=(), in
     flake_args = []
     if 'impure' in arg_dict and arg_dict['impure'] == 'true':
         flake_args += ['--impure']
-    command = ["nix", "eval"] + option_args + input_args + ["--raw"] + flake_args + [f"{flake_dir}#{attrname}.drvPath"]
+    command = ["nix", "eval", "--extra-experimental-features", "nix-command flakes"] \
+        + option_args + input_args + ["--raw"] \
+        + flake_args + [f"{flake_dir}#{attrname}.drvPath"]
     result = run(command, stdout=PIPE, stderr=PIPE, encoding="utf-8",)
 
     if result.returncode == 0:
